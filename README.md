@@ -1,5 +1,7 @@
 # Regional-scale antibiotic rotation and trojan pro-drugs
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20067399.svg)](https://doi.org/10.5281/zenodo.20067399)
+
 This repository contains the Python implementation of the impulsive difference-equation
 model described in:
 

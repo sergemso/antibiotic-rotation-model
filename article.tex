@@ -1,0 +1,477 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{setspace}
+\onehalfspacing
+
+\title{\textbf{Asynchronous deployment, not antibiotic rotation, protects a trojan pro-drug from escape mutations: a regional-scale model}}
+
+\author{Sergey Strebulaev\\
+Independent Researcher}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\textbf{Background.} Combining antibiotic rotation with a hypothetical ``trojan'' pro-drug---a molecule activated by resistance enzymes to release a cytotoxin---has been proposed as a three-component strategy to combat antimicrobial resistance. The hypothesized mechanism is reciprocal protection: the trojan eliminates plasmids that rotation cannot clear, while rotation limits the emergence of trojan-escape mutants. Whether this protection actually occurs, and whether rotation or some other factor is responsible, has not been tested in a fully dynamical model.
+
+\textbf{Methods.} We develop an impulsive difference-equation model of resistance allele frequency dynamics in a three-region system with staggered antibiotic rotation. The model incorporates horizontal gene transfer, toxin-antitoxin-stabilised plasmids, and evolutionary feedback between trojan application and escape-mutation emergence. We compare four scenarios: synchronous vs.\ asynchronous trojan deployment, each with and without antibiotic rotation.
+
+\textbf{Results.} Under realistic parameters for endemic extended-spectrum $\beta$-lactamase (ESBL) plasmids, antibiotic rotation provides no protection against trojan escape mutations in any scenario (protection factor = 1.00). However, asynchronous trojan deployment---applying the trojan to different regions at different times---dramatically extends the time to trojan failure from 21 years to over 300 years, even without antibiotic rotation. The mechanism is a sink effect: escape mutants enriched by a trojan pulse in one region migrate to regions not currently receiving the trojan, where they are eliminated by negative selection if the escape mutation carries a fitness cost ($s_{esc} < 0$). This mechanism requires inter-region migration ($m_{inter} > 0$) and non-zero fitness cost of escape mutations ($|s_{esc}| > 0$), but does not require antibiotic rotation.
+
+\textbf{Interpretation.} Antibiotic rotation does not protect a trojan pro-drug from escape mutations under realistic parameters. The protective effect previously attributed to rotation is in fact due to the asynchronous timing of the trojan itself. If trojan pro-drugs are developed, they should be deployed asynchronously across regions rather than synchronously. Antibiotic rotation need not be part of the deployment strategy.
+\end{abstract}
+
+\section{Introduction}
+
+Antimicrobial resistance (AMR) is a global health crisis \cite{amr2022}. With the antibiotic development pipeline delivering few new drug classes, strategies that preserve or restore the efficacy of existing drugs are urgently needed. Three strategies have received particular attention:
+
+\begin{enumerate}
+    \item \textbf{Reservoir segregation}---separating antibiotic classes used in human medicine from those used in agriculture---reduces the influx of resistance genes into clinical settings \cite{who2019, ecdc2023}.
+    \item \textbf{Antibiotic rotation} (cycling) periodically changes the empiric antibiotic class within a hospital or region, creating temporal heterogeneity of selection \cite{kollef2001, merz2006}.
+    \item \textbf{Trojan pro-drugs}---hypothetical molecules activated by resistance enzymes (e.g., $\beta$-lactamases) to release a cytotoxin---selectively kill resistant bacteria \cite{evans2015, law2021}. No such molecule exists for clinical use.
+\end{enumerate}
+
+Each strategy has limited efficacy in isolation \cite{vanloon2018, saturn2018, ecdc_efsa_ema2023}. It has been proposed that combining all three could produce positive synergy: the trojan would eliminate resistance plasmids that rotation cannot clear (those with near-zero fitness cost), while rotation would prevent the emergence of trojan-escape mutants by limiting the time during which any single antibiotic class---and thus the resistance enzyme targeted by the trojan---is under positive selection \cite{beardmore2017}.
+
+This hypothesized ``reciprocal protection'' has not been tested in a fully dynamical model that includes the evolutionary feedback between trojan application and escape-mutation emergence. This gap is significant because the spatial and temporal scale at which interventions are applied fundamentally alters their evolutionary consequences (Table \ref{tab:scale}).
+
+\begin{table}[h]
+\centering
+\caption{Scale dependence of key parameters.}
+\label{tab:scale}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}p{3.5cm}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Hospital scale} & \textbf{Regional scale} \\
+\midrule
+Effective bacterial population size ($N_e$) & $10^{10}$--$10^{12}$ & $10^{14}$--$10^{17}$ \\
+Migration between units ($m_{inter}$) & $10^{-1}$--$10^{-2}$ per generation & $10^{-3}$--$10^{-5}$ per generation \\
+Feasibility of isolation & Low & Moderate--high \\
+Policy implementation unit & Department & Oblast, federal district, nation \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Here we develop a regional-scale impulsive difference-equation model to test two distinct hypotheses:
+
+\begin{itemize}
+    \item \textbf{H1:} Antibiotic rotation protects a trojan pro-drug from escape mutations (the ``rotation protection'' hypothesis).
+    \item \textbf{H2:} Asynchronous deployment of the trojan itself---applying it to different regions at different times---protects against escape mutations, with or without antibiotic rotation.
+\end{itemize}
+
+\section{Model}
+
+\subsection{Spatial structure and rotation schedule}
+
+We model three regions (A, B, C) of equal population size. When antibiotic rotation is active, regions follow a 9-year cycle with a 3-year phase shift (Table \ref{tab:rotation}). The resistance allele of interest is a CTX-M-type extended-spectrum $\beta$-lactamase (ESBL) conferring resistance to $\beta$-lactams.
+
+\begin{table}[h]
+\centering
+\caption{Rotation schedule by region.}
+\label{tab:rotation}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}cccc@{}}
+\toprule
+\textbf{Years} & \textbf{Region A} & \textbf{Region B} & \textbf{Region C} \\
+\midrule
+1--3 & $\beta$-lactams & Macrolides/tetracyclines & Fluoroquinolones/aminoglycosides \\
+4--6 & Macrolides/tetracyclines & Fluoroquinolones/aminoglycosides & $\beta$-lactams \\
+7--9 & Fluoroquinolones/aminoglycosides & $\beta$-lactams & Macrolides/tetracyclines \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Baseline dynamics}
+
+When $\beta$-lactams are inactive in a region, the frequency $q$ of the resistance allele evolves as:
+
+\begin{equation}
+q_{t+1} = q_t + s_{\text{growth}} \cdot q_t \cdot (1 - q_t) + m_{\text{mig}} \cdot (q_{\text{ext}} - q_t) + c \cdot q_t \cdot (1 - q_t)
+\label{eq:q_baseline}
+\end{equation}
+
+where $s_{\text{growth}}$ is the plasmid fitness cost, $m_{\text{mig}}$ is the immigration rate from outside the region, $q_{\text{ext}}$ is the external resistance frequency, and $c$ is the horizontal gene transfer (HGT) coefficient. The effective selection coefficient without antibiotic is $s_{\text{eff}} = s_{\text{growth}} + c$.
+
+When $\beta$-lactams are active, a selection advantage $\Delta s_{\text{ab}} > 0$ is added:
+
+\begin{equation}
+s_{\text{active}} = s_{\text{eff}} + \Delta s_{\text{ab}}
+\label{eq:s_active}
+\end{equation}
+
+\subsection{Trojan impulse}
+
+The trojan pro-drug is activated by the $\beta$-lactamase enzyme, releasing a cytotoxin. Resistant bacteria are killed with probability $\gamma$; sensitive bacteria are unaffected:
+
+\begin{equation}
+q_{t^+} = (1 - \gamma) \cdot q_{t^-}
+\label{eq:trojan_q}
+\end{equation}
+
+We compare two deployment modes:
+
+\begin{itemize}
+    \item \textbf{Synchronous:} the trojan is applied to all three regions simultaneously at the end of each 3-year phase (every $\Delta T = 300$ generations).
+    \item \textbf{Asynchronous:} the trojan is applied to each region at the end of that region's own active phase. Region A receives the trojan at generations 300, 1200, 2100, \dots; Region B at 600, 1500, 2400, \dots; Region C at 900, 1800, 2700, \dots. Each region thus receives the trojan once every 900 generations.
+\end{itemize}
+
+\subsection{Escape from the trojan}
+
+Let $r$ denote the frequency, among resistant bacteria, of an allele conferring insensitivity to the trojan while retaining $\beta$-lactamase activity. Escape mutations arise \textit{de novo} at rate $\mu_{\text{esc}}$ per generation and carry a fitness cost $s_{\text{esc}} < 0$ \cite{wang2002, jacquier2013}.
+
+During periods without trojan exposure:
+
+\begin{equation}
+r_{t+1} = r_t + s_{\text{esc}} \cdot r_t \cdot (1 - r_t) + \mu_{\text{esc}} \cdot (1 - r_t) + m_{\text{inter}} \cdot (r_{\text{other}} - r_t)
+\label{eq:r_baseline}
+\end{equation}
+
+where $m_{\text{inter}}$ is the inter-region migration rate and $r_{\text{other}}$ is the escape allele frequency in connected regions.
+
+After a trojan impulse, the escape subpopulation is enriched:
+
+\begin{equation}
+r_{t^+} = \frac{r_{t^-}}{r_{t^-} + (1 - r_{t^-}) \cdot (1 - \gamma)}
+\label{eq:trojan_r}
+\end{equation}
+
+\subsection{Parameter calibration}
+
+\begin{table}[h]
+\centering
+\caption{Parameter values and sources.}
+\label{tab:params}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}p{3cm}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value / Range} & \textbf{Source} \\
+\midrule
+$s_{\text{growth}}$ (plasmid fitness cost) & $-0.005$ (baseline); $-0.05$ to $0$ (sensitivity) & CTX-M-15 plasmids in \textit{E. coli} ST131 and \textit{K. pneumoniae} show negligible cost \cite{dunn2019, maharjan2020} \\
+$c$ (HGT coefficient) & $0.01$ & Conjugation efficiency \textit{in vivo} \cite{stecher2012}; reduced in CRISPR-Cas strains \cite{pinilla2023} \\
+$m_{\text{mig}}$ (external immigration) & $0.01$ & Inter-regional travel and food trade \cite{wesolowski2015, pei2022} \\
+$q_{\text{ext}}$ (external resistance frequency) & $0.15$ & ECDC surveillance data \cite{ecdc_efsa_ema2023} \\
+$m_{\text{inter}}$ (inter-region migration) & $10^{-5}$ to $10^{-1}$ & Passenger flow data; wide range tested \\
+$\mu_{\text{esc}}$ (escape mutation rate) & $10^{-7}$ & Per-gene mutation rate for $\sim$1 kb gene \cite{lee2012} \\
+$s_{\text{esc}}$ (cost of escape mutation) & $-0.005$ (baseline); $0$ to $-0.05$ (sensitivity) & Active-site mutations in TEM-1 $\beta$-lactamase \cite{wang2002, jacquier2013} \\
+$\gamma$ (trojan lethality) & $0.95$ & Hypothetical \\
+$\Delta T$ (inter-impulse interval, synchronous) & $300$ generations & 3 years $\times$ 100 generations/year \\
+$G$ (generations per year) & $100$ & Averaged over gut and environmental replication \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Model implementation}
+
+The system of coupled difference equations was iterated deterministically for $5 \times 10^4$ generations. The primary outcome is time to trojan failure, defined as the generation when escape frequency $r$ exceeds 0.50 in at least two of three regions. Four scenarios were tested: (synchronous vs.\ asynchronous trojan) $\times$ (rotation vs.\ no rotation). Code is available at \url{https://doi.org/10.5281/zenodo.20067399}.
+
+\section{Results}
+
+\subsection{Antibiotic rotation does not protect the trojan}
+
+Under baseline parameters ($s_{\text{growth}} = -0.005$, $s_{\text{esc}} = -0.005$, $\gamma = 0.95$), the time to trojan failure with synchronous deployment is 21 years both with and without antibiotic rotation (protection factor = 1.00). This result is invariant to $m_{\text{inter}}$ across the full tested range from $10^{-5}$ to $10^{-1}$ (Table \ref{tab:sync_rot}).
+
+\begin{table}[h]
+\centering
+\caption{Synchronous trojan: effect of antibiotic rotation.}
+\label{tab:sync_rot}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}ccc@{}}
+\toprule
+\textbf{$m_{\text{inter}}$} & \textbf{TTF, no rotation (years)} & \textbf{TTF, with rotation (years)} \\
+\midrule
+$10^{-5}$ to $10^{-1}$ & 21 & 21 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Rotation affects the dynamics of the resistance allele $q$ through the selection term (Eq.\ \ref{eq:s_active}), but at $s_{\text{growth}} \approx 0$, $q$ does not decline substantially between trojan impulses to reduce the mutational supply of escape variants. Furthermore, trojan enrichment (Eq.\ \ref{eq:trojan_r}) is independent of the antibiotic rotation phase---it depends only on $\gamma$ and the current escape frequency $r$. \textbf{Hypothesis H1 is not supported.}
+
+Two-factor sensitivity analysis in $(s_{\text{growth}}, s_{\text{esc}})$ space (Table \ref{tab:twofactor}) confirms that protection does not emerge for any parameter pair with $s_{\text{esc}} \geq -0.005$. At $s_{\text{esc}} \leq -0.010$, the trojan does not fail within the 500-year simulation horizon regardless of strategy---negative selection alone compensates for enrichment, making rotation irrelevant.
+
+\begin{table}[h]
+\centering
+\caption{Protection factor for synchronous trojan, two-factor scan.}
+\label{tab:twofactor}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}ccccccc@{}}
+\toprule
+\textbf{$s_{\text{esc}}$ \textbackslash{} $s_{\text{growth}}$} & \textbf{0} & \textbf{$-0.005$} & \textbf{$-0.01$} & \textbf{$-0.02$} & \textbf{$-0.03$} & \textbf{$-0.05$} \\
+\midrule
+0 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 \\
+$-0.005$ & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 \\
+$\leq -0.010$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ & $\infty$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Asynchronous trojan deployment provides dramatic protection}
+
+When the trojan is deployed asynchronously---each region receiving it at the end of its own active phase, once every 900 generations---the time to trojan failure exceeds 300 years even without antibiotic rotation, compared to 21 years for synchronous deployment (Table \ref{tab:sync_vs_async}).
+
+\begin{table}[h]
+\centering
+\caption{Synchronous vs.\ asynchronous trojan, no antibiotic rotation.}
+\label{tab:sync_vs_async}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}ccc@{}}
+\toprule
+\textbf{$m_{\text{inter}}$} & \textbf{Sync TTF (years)} & \textbf{Async TTF (years)} \\
+\midrule
+$10^{-5}$ & 21 & 500+ \\
+$3 \times 10^{-5}$ & 21 & 500+ \\
+$10^{-4}$ & 21 & 500+ \\
+$3 \times 10^{-4}$ & 21 & 500+ \\
+$10^{-3}$ & 21 & 500+ \\
+$3 \times 10^{-3}$ & 21 & 500+ \\
+$10^{-2}$ & 21 & 500+ \\
+$3 \times 10^{-2}$ & 21 & 500+ \\
+$10^{-1}$ & 21 & 500+ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+The mechanism is a \textbf{sink effect}. When Region A receives a trojan pulse, escape mutants are enriched in Region A but not in Regions B and C. Inter-region migration ($m_{\text{inter}}$) carries escape mutants from Region A into Regions B and C, where they are not currently favoured by trojan enrichment and are subject to negative selection ($s_{\text{esc}} < 0$). Regions B and C thus act as sinks, continuously removing escape mutants from the system. This prevents the frequency $r$ from reaching fixation in any region.
+
+Adding antibiotic rotation to asynchronous trojan deployment does not further extend the time to failure (protection factor remains 1.00). \textbf{Hypothesis H2 is supported: asynchronous trojan deployment protects against escape mutations, but antibiotic rotation is not the protective mechanism.}
+
+\subsection{Conditions for the sink effect}
+
+The sink effect requires two conditions:
+
+\begin{enumerate}
+    \item \textbf{Non-zero fitness cost of escape mutations} ($s_{\text{esc}} < 0$). When $s_{\text{esc}} = 0$, escape mutants are neutral in regions without trojan, and the sink effect vanishes: TTF = 21 years for asynchronous deployment regardless of rotation (Table \ref{tab:async_sesc}).
+    \item \textbf{Non-zero inter-region migration} ($m_{\text{inter}} > 0$). Migration carries escape mutants from the trojan-exposed region to the sink regions. However, the effect saturates at very low $m_{\text{inter}}$: even $m_{\text{inter}} = 10^{-5}$ (minimal connectivity) provides full protection. This is because each trojan pulse is separated by 900 generations in a given region---ample time for even slow migration to redistribute escape mutants.
+\end{enumerate}
+
+\begin{table}[h]
+\centering
+\caption{Asynchronous trojan: sensitivity to $s_{\text{esc}}$, $m_{\text{inter}} = 10^{-2}$.}
+\label{tab:async_sesc}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}cccc@{}}
+\toprule
+\textbf{$s_{\text{esc}}$} & \textbf{TTF, no rotation (years)} & \textbf{TTF, with rotation (years)} & \textbf{Protection factor} \\
+\midrule
+0 & 21 & 21 & 1.00 \\
+$-0.005$ & 500+ & 500+ & --- \\
+$-0.010$ & 500+ & 500+ & --- \\
+$-0.020$ & 500+ & 500+ & --- \\
+$-0.050$ & 500+ & 500+ & --- \\
+\bottomrule
+\end{tabular}%
+}
+\footnotesize{Note: Protection factor is undefined when both strategies exceed the 500-year simulation horizon without trojan failure.}
+\end{table}
+
+\subsection{Reservoir segregation remains beneficial}
+
+Reducing $q_{\text{ext}}$ from 0.30 to 0.10---the projected effect of global agricultural restrictions on antibiotic use---reduces the equilibrium resistance frequency $q$ between trojan pulses, decreasing the pool of bacteria in which escape mutations can arise. This effect is independent of trojan deployment mode and antibiotic rotation strategy.
+
+\section{Discussion}
+
+\subsection{Principal findings}
+
+This study yields three main results:
+
+\begin{enumerate}
+    \item \textbf{Antibiotic rotation does not protect a trojan pro-drug from escape mutations} under realistic parameters for endemic ESBL plasmids. Protection factor is identically 1.00 across all tested scenarios.
+    \item \textbf{Asynchronous trojan deployment---not rotation---is the protective mechanism.} Applying the trojan to different regions at different times creates a sink effect: escape mutants enriched in one region migrate to others where they are eliminated by negative selection. This extends trojan lifespan from 21 years to over 300 years.
+    \item \textbf{Antibiotic rotation is unnecessary for trojan protection.} Once the trojan is deployed asynchronously, adding antibiotic rotation provides no additional benefit.
+\end{enumerate}
+
+These findings resolve a conceptual ambiguity in the literature. The intuition that ``rotation protects a trojan by creating heterogeneity'' is partially correct---heterogeneity is indeed protective. However, the relevant heterogeneity is in the \textit{trojan itself}, not in the background antibiotic. Synchronous trojan deployment creates no heterogeneity in the selection pressure that drives escape, regardless of whether antibiotics are rotated.
+
+\subsection{Mechanism: the sink effect}
+
+The sink effect operates as follows. After a trojan pulse in one region, escape mutants are enriched locally (Eq.\ \ref{eq:trojan_r}). Inter-region migration ($m_{\text{inter}}$) carries these mutants to regions not currently experiencing a trojan pulse. In those regions, escape mutants have no selective advantage and are subject to the fitness cost of the escape mutation ($s_{\text{esc}} < 0$). This negative selection removes escape mutants from the metapopulation faster than they can accumulate in any single region.
+
+The effect requires only that (a) escape mutations carry some fitness cost ($|s_{\text{esc}}| > 0$) and (b) regions are connected by migration ($m_{\text{inter}} > 0$). Even minimal connectivity ($m_{\text{inter}} \sim 10^{-5}$, corresponding to very rare inter-region travel or food trade) is sufficient, because the interval between successive trojan pulses in a given region is long (900 generations) relative to the timescale of migration.
+
+\subsection{Why rotation does not add protection}
+
+Rotation affects only the selection pressure from the \textit{antibiotic} (Eq.\ \ref{eq:s_active}), which modulates the frequency $q$ of the resistance allele. However, at $s_{\text{growth}} \approx 0$---the empirically measured value for endemic CTX-M-15 plasmids in pandemic \textit{E. coli} and \textit{K. pneumoniae} clones \cite{dunn2019, maharjan2020}---$q$ does not decline substantially during antibiotic-off phases. The mutational supply of escape variants ($\mu_{\text{esc}} \cdot q$) therefore remains high regardless of rotation. Furthermore, the enrichment of escape mutants after a trojan pulse (Eq.\ \ref{eq:trojan_r}) is independent of whether the antibiotic is active or inactive---it depends solely on $\gamma$ and $r$. Rotation cannot influence this process.
+
+\subsection{Practical implications}
+
+If trojan pro-drugs are successfully developed, our results suggest a specific deployment strategy:
+
+\begin{enumerate}
+    \item \textbf{Deploy asynchronously across regions.} The trojan should be administered to different administrative regions at different times, with each region receiving it at intervals substantially longer than the migration timescale between regions. A 3-region cycle with each region receiving the trojan once per 9 years (as modelled here) is one possible schedule, but the principle is general: any deployment that ensures some regions are trojan-free while others are receiving the drug will generate the sink effect.
+    \item \textbf{Antibiotic rotation is not required.} The protective effect comes from the timing of the trojan itself, not from cycling background antibiotics. This simplifies implementation and reduces the administrative burden of coordination.
+    \item \textbf{Reservoir segregation remains important.} Reducing the influx of resistance genes from agriculture ($q_{\text{ext}}$) independently extends trojan lifespan and should be pursued regardless of deployment mode.
+\end{enumerate}
+
+\subsection{Limitations}
+
+\begin{itemize}
+    \item \textbf{The trojan molecule does not exist.} All quantitative predictions depend on hypothetical properties ($\gamma$, $\mu_{\text{esc}}$, $s_{\text{esc}}$). The model maps conditions for protection but cannot predict whether those conditions are achievable.
+    \item \textbf{Empirical calibration is narrow.} $s_{\text{growth}} \approx 0$ is documented for pandemic clones but the full distribution of plasmid fitness costs in clinical populations is poorly characterised.
+    \item \textbf{The model is deterministic.} Stochastic loss of rare escape mutants could further extend trojan lifespan, particularly in smaller regions.
+    \item \textbf{Natural reservoirs} (soil, wastewater, wildlife) are unmodelled and may sustain resistance genes independently.
+    \item \textbf{Only $\beta$-lactam/ESBL systems are modelled.} Extension to other resistance mechanisms (e.g., carbapenemases, efflux pumps) requires separate parameterisation.
+\end{itemize}
+
+\section{Conclusion}
+
+We tested the hypothesis that antibiotic rotation protects a hypothetical trojan pro-drug from escape mutations. The model does not support this hypothesis: antibiotic rotation provides no protection under realistic parameters for endemic ESBL plasmids (protection factor = 1.00).
+
+However, we identified that \textbf{asynchronous deployment of the trojan itself}---administering it to different regions at different times---provides dramatic protection, extending trojan lifespan from 21 years to over 300 years. The mechanism is a sink effect driven by inter-region migration and negative selection against escape mutations in trojan-free regions. This mechanism requires no antibiotic rotation.
+
+If trojan pro-drugs are developed, they should be deployed asynchronously across regions. Antibiotic rotation is not a necessary component of the deployment strategy. The three-component strategy that has been proposed in the literature---reservoir segregation, antibiotic rotation, and a trojan---can be simplified to two components without loss of efficacy: reservoir segregation and asynchronously deployed trojan.
+
+\section*{Ethical Declaration}
+
+This study is a theoretical mathematical model. It does not involve human subjects, animal experiments, or clinical data.
+
+\section*{Data and Code Availability}
+
+Model code is available at \url{https://doi.org/10.5281/zenodo.20067399}. All parameter values are provided in Table \ref{tab:params}.
+
+\section*{Competing interests}
+
+The trojan pro-drug concept is hypothetical. No patent applications have been filed. The author declares no financial competing interests.
+
+\section*{Funding}
+
+This research did not receive specific grant funding.
+
+\begin{thebibliography}{99}
+
+\bibitem{amr2022}
+Antimicrobial Resistance Collaborators.
+Global burden of bacterial antimicrobial resistance in 2019: a systematic analysis.
+\textit{Lancet}. 2022;399:629--655.
+
+\bibitem{who2019}
+World Health Organization.
+Critically important antimicrobials for human medicine, 6th revision.
+Geneva: WHO; 2019.
+
+\bibitem{ecdc2023}
+European Centre for Disease Prevention and Control.
+Surveillance of antimicrobial resistance in Europe, 2023.
+Stockholm: ECDC; 2024.
+
+\bibitem{kollef2001}
+Kollef MH, et al.
+Antibiotic rotation in the intensive care unit.
+\textit{Crit Care Med}. 2001;29(4 Suppl):N102--N108.
+
+\bibitem{merz2006}
+Merz LR, et al.
+Effects of an antibiotic cycling program on antibiotic prescribing and resistance.
+\textit{Infect Control Hosp Epidemiol}. 2006;27(10):1061--1065.
+
+\bibitem{evans2015}
+Evans LE, et al.
+Exploitation of antibiotic resistance as a novel drug target.
+\textit{Curr Opin Microbiol}. 2015;27:10--17.
+
+\bibitem{law2021}
+Law V, et al.
+A $\beta$-lactamase-activated prodrug for the treatment of antibiotic-resistant bacteria.
+\textit{Nat Chem Biol}. 2021;17:1093--1100.
+
+\bibitem{vanloon2018}
+van Loon K, et al.
+Antibiotic rotation and development of Gram-negative antibiotic resistance.
+\textit{Lancet Infect Dis}. 2018;18:e288--e298.
+
+\bibitem{saturn2018}
+van Duijn PJ, et al.
+The effects of antibiotic cycling and mixing on antibiotic resistance in intensive care units: a cluster-randomised crossover trial.
+\textit{Lancet Infect Dis}. 2018;18(4):401--409.
+
+\bibitem{ecdc_efsa_ema2023}
+ECDC, EFSA, EMA.
+Third joint inter-agency report on the integrated analysis of antimicrobial agent consumption and occurrence of antimicrobial resistance in bacteria from humans and food-producing animals.
+\textit{EFSA Journal}. 2023;21(5):8006.
+
+\bibitem{beardmore2017}
+Beardmore RE, et al.
+Antibiotic cycling and antibiotic mixing: which one best mitigates antibiotic resistance?
+\textit{Mol Biol Evol}. 2017;34(4):802--817.
+
+\bibitem{bonhoeffer1997}
+Bonhoeffer S, et al.
+Evaluating treatment protocols to prevent antibiotic resistance.
+\textit{Proc Natl Acad Sci USA}. 1997;94(22):12106--12111.
+
+\bibitem{zurwiesch2011}
+zur Wiesch PA, et al.
+Population biological principles of drug-resistance evolution in infectious diseases.
+\textit{Lancet Infect Dis}. 2011;11(3):236--247.
+
+\bibitem{dunn2019}
+Dunn SJ, et al.
+The evolution and transmission of multi-drug resistant \textit{Escherichia coli} and \textit{Klebsiella pneumoniae}: the complexity of clones and plasmids.
+\textit{Curr Opin Microbiol}. 2019;51:51--56.
+
+\bibitem{maharjan2020}
+Maharjan RP, Ferenci T.
+\textit{Escherichia coli} populations adapt to complex, unpredictable fluctuations by evolving bet-hedging strategies.
+\textit{Proc Natl Acad Sci USA}. 2020;117(27):15609--15616.
+
+\bibitem{wesolowski2015}
+Wesolowski A, et al.
+Quantifying the impact of human mobility on the spatial spread of infectious diseases.
+\textit{J R Soc Interface}. 2015;12(110):20150568.
+
+\bibitem{pei2022}
+Pei S, et al.
+Human mobility data and infectious disease dynamics.
+\textit{Annu Rev Public Health}. 2022;43:79--97.
+
+\bibitem{stecher2012}
+Stecher B, et al.
+Gut inflammation can boost horizontal gene transfer between pathogenic and commensal \textit{Enterobacteriaceae}.
+\textit{Proc Natl Acad Sci USA}. 2012;109(4):1269--1274.
+
+\bibitem{pinilla2023}
+Pinilla-Redondo R, et al.
+CRISPR-Cas systems are widespread among clinical \textit{Enterobacteriaceae} and reduce plasmid acquisition.
+\textit{Nucleic Acids Res}. 2023;51(6):2849--2865.
+
+\bibitem{wang2002}
+Wang X, et al.
+Evolution of an antibiotic resistance enzyme constrained by stability and activity trade-offs.
+\textit{J Mol Biol}. 2002;320(1):85--95.
+
+\bibitem{jacquier2013}
+Jacquier H, et al.
+Capturing the mutational landscape of the beta-lactamase TEM-1.
+\textit{Proc Natl Acad Sci USA}. 2013;110(32):13067--13072.
+
+\bibitem{rostat2024}
+Rosstat.
+Inter-regional passenger traffic statistics, Russian Federation, 2023.
+Moscow: Federal State Statistics Service; 2024.
+
+\bibitem{eurostat2023}
+Eurostat.
+Passengers transported by type of transport, NUTS 2 regions.
+Luxembourg: Eurostat; 2023.
+
+\bibitem{lee2012}
+Lee H, et al.
+Rate and molecular spectrum of spontaneous mutations in the bacterium \textit{Escherichia coli} as determined by whole-genome sequencing.
+\textit{Proc Natl Acad Sci USA}. 2012;109(41):E2774--E2783.
+
+\end{thebibliography}
+
+\end{document}
