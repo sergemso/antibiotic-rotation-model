@@ -1,0 +1,13 @@
+[project]
+name = "antibiotic-rotation-model"
+version = "1.0.0"
+description = "Regional-scale antibiotic rotation and trojan pro-drugs: a model of reciprocal protection against resistance evolution"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "matplotlib>=3.10.9",
+    "numpy>=2.4.4",
+]
+
+[project.urls]
+Repository = "https://github.com/sergemso/antibiotic-rotation-model"
