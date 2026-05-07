@@ -1,0 +1,22 @@
+{
+  "title": "Regional-scale antibiotic rotation and trojan pro-drugs: impulsive difference-equation model",
+  "description": "Code accompanying Strebulaev S. (2026) 'Asynchronous deployment, not antibiotic rotation, protects a trojan pro-drug from escape mutations: a regional-scale model'.",
+  "creators": [
+    {
+      "name": "Strebulaev, Sergey",
+      "affiliation": "Independent Researcher",
+      "orcid": ""
+    }
+  ],
+  "keywords": [
+    "antimicrobial resistance",
+    "antibiotic rotation",
+    "trojan pro-drug",
+    "mathematical model",
+    "population genetics",
+    "difference equations"
+  ],
+  "license": "CC-BY-4.0",
+  "upload_type": "software",
+  "access_right": "open"
+}
